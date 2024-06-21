@@ -1,14 +1,16 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
+import { useParams, useRouter } from "next/navigation";
 
 interface ServerSearchProps {
   data: {
@@ -26,6 +28,32 @@ interface ServerSearchProps {
 
 export const ServerSearch = ({ data }: ServerSearchProps) => {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const params = useParams();
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const onClick = ({ id, type }: { id: string; type: "channel" | "member" }) => {
+    setOpen(false);
+
+    if (type === "member") {
+      return router.push(`/servers/${params?.serverId}/conversations/${id}`);
+    }
+
+    if (type === "channel") {
+      return router.push(`/servers/${params?.serverId}/channels/${id}`);
+    }
+  };
 
   return (
     <>
@@ -38,29 +66,29 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
           Search
         </p>
         <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
-          <span className="text-xs">CTRL</span>K
+          <span className="text-xs">CTRL+ K</span>
         </kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Search all channels and members" />
-        <CommandEmpty>No Results found</CommandEmpty>
-        {data.length > 0 &&
-          data.map(({ label, type, data }) => {
-            if (!data?.length) return null;
-
-            return (
-              <CommandGroup key={label} heading={label}>
-                {data?.map(({ id, icon, name }) => {
-                  return (
-                    <CommandItem key={id}>
+        <CommandList>
+          <CommandEmpty>No Results found</CommandEmpty>
+          {data.map(({ label, type, data: innerData }) => {
+            if (Array.isArray(innerData) && innerData.length > 0) {
+              return (
+                <CommandGroup key={label} heading={label}>
+                  {innerData?.map(({ id, icon, name }) => (
+                    <CommandItem key={id} onSelect={() => onClick({ id, type })}>
                       {icon}
                       <span>{name}</span>
                     </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            );
+                  ))}
+                </CommandGroup>
+              );
+            }
+            return null;
           })}
+        </CommandList>
       </CommandDialog>
     </>
   );
