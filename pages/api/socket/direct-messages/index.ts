@@ -86,9 +86,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
 
     const channelKey = `chat:${conversationId}:messages`;
 
-    res?.socket?.server?.io?.emit(channelKey, message);
+    // res?.socket?.server?.io?.emit(channelKey, message);
 
-    return res.status(200).json(message);
+    return res.status(200).json({ eventKey: channelKey, data: message });
   } catch (error) {
     console.log("[DIRECT_MESSAGES_POST]", error);
     return res.status(500).json({ message: "Internal Error" });

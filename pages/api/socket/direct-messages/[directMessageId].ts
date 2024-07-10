@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { NextApiResponseServerIo } from "@/types";
 import { MemberRole } from "@prisma/client";
 import { NextApiRequest } from "next";
+import { io as ClientIO } from "socket.io-client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponseServerIo) {
   if (req.method !== "DELETE" && req.method !== "PATCH") {
@@ -136,9 +137,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
 
     const updateKey = `chat:${conversation.id}:messages:update`;
 
-    res?.socket?.server?.io?.emit(updateKey, directMessage);
+    // res?.socket?.server?.io?.emit(updateKey, directMessage);
 
-    return res.status(200).json(directMessage);
+    return res.status(200).json({ eventKey: updateKey, data: directMessage });
   } catch (error) {
     console.log("[MESSAGE_ID]", error);
     return res.status(500).json({ error: "Internal Error" });

@@ -4,6 +4,8 @@ import { NextApiResponseServerIo } from "@/types";
 import { MemberRole } from "@prisma/client";
 import { NextApiRequest } from "next";
 
+import { io as ClientIO } from "socket.io-client";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponseServerIo) {
   if (req.method !== "DELETE" && req.method !== "PATCH") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -132,9 +134,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
 
     const updateKey = `chat:${channelId}:messages:update`;
 
-    res?.socket?.server?.io?.emit(updateKey, message);
+    // res?.socket?.server?.io?.emit(updateKey, message);
 
-    return res.status(200).json(message);
+    return res.status(200).json({ eventKey: updateKey, data: message });
   } catch (error) {
     console.log("[MESSAGE_ID]", error);
     return res.status(500).json({ error: "Internal Error" });

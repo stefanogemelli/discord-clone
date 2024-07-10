@@ -2,6 +2,7 @@ import { currentProfilePages } from "@/lib/current-profile-pages";
 import { db } from "@/lib/db";
 import { NextApiResponseServerIo } from "@/types";
 import { NextApiRequest } from "next";
+import { io as ClientIO } from "socket.io-client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponseServerIo) {
   if (req.method !== "POST") {
@@ -82,9 +83,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
 
     const channelKey = `chat:${channelId}:messages`;
 
-    res?.socket?.server?.io?.emit(channelKey, message);
+    // ---------------------------------------------------------  //
+    // res?.socket?.server?.io?.emit(channelKey, message);
 
-    return res.status(200).json(message);
+    // ---------------------------------------------------------  //
+    return res.status(200).json({ eventKey: channelKey, data: message });
   } catch (error) {
     console.log("[MESSAGES_POST]", error);
     return res.status(500).json({ message: "Internal Error" });

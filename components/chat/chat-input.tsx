@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { useModal } from "@/hooks/use-modal-store";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { useRouter } from "next/navigation";
+import { useSocket } from "../providers/socket-provider";
 
 interface ChatInpuProps {
   apiUrl: string;
@@ -27,6 +28,8 @@ const formSchema = z.object({
 export const ChatInput = ({ apiUrl, query, name, type }: ChatInpuProps) => {
   const { onOpen } = useModal();
   const router = useRouter();
+
+  const { socket } = useSocket();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,7 +47,10 @@ export const ChatInput = ({ apiUrl, query, name, type }: ChatInpuProps) => {
         query,
       });
 
-      axios.post(url, values);
+      const {
+        data: { eventKey, data },
+      } = await axios.post(url, values);
+      socket.emit("broadcast", eventKey, data);
       form.reset();
       router.refresh();
     } catch (error) {
